@@ -1,0 +1,452 @@
+package automata;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.Timer;
+
+import java.awt.Graphics;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+
+@SuppressWarnings("serial")
+public class MainPanel extends JPanel implements ActionListener {
+	
+	private Image pic;
+	private JButton firstBtn; //start button
+	private JButton secondBtn; //stop button
+	private JButton thirdBtn; //clear the grid
+	private JButton fourthBtn; //living cells back
+	private JTextField living;	//num of neighbor that lets a living cell stay alive
+	private JTextField dead;	//num of neighbor that allow a dead cell to come to life
+	private JTextField nth;
+	private String liv;
+	private String de;
+	private int n;  //the nth generation that it will display
+	private JLabel picLabel;
+	private JLabel generation; //states the current generation number
+	private int Gen; //number to keep track with the generation
+	private JButton SlowBtn; //lower speed
+	private JButton QuickBtn; //faster speed
+	private int sec; //count for the timer
+	private Timer timer;
+	//make cells a class variable
+	private int[][] cells;
+	private int size;
+	private int[][] Copy; //this is the copy of the cells, used if needed
+	
+    public MainPanel(int xDim, int yDim, int S) {
+        super();
+		Gen = 0;
+		liv = "23";	//original question input: 23
+		de = "3";   //original question input: 3
+		n = 1;
+		sec = 1;
+
+        setBackground(Color.LIGHT_GRAY);
+		addMouseListener(new MAdapter());
+		addMouseMotionListener(new MAdapter());
+		setFocusable(true);
+		setDoubleBuffered(true);
+
+		pic = new BufferedImage(xDim, yDim, BufferedImage.TYPE_INT_RGB);
+		timer = new Timer(sec, this);			// initialize the timer, the bigger the num, the slower it is
+        
+		size = S;
+		cells=new int[pic.getWidth(null)/size][pic.getHeight(null)/size];
+		
+		addThingsToPanel();
+    }
+
+    public void addThingsToPanel() {
+    	initTxt();
+    	add(living);
+    	add(dead);
+    	add(nth);
+    	initLab();
+    	add(generation);
+    	initBtns();
+    	add(firstBtn);
+    	add(secondBtn);
+    	add(thirdBtn);
+    	add(fourthBtn);
+    	add(SlowBtn);
+    	add(QuickBtn);
+    	initPic();
+		add(picLabel);
+    }
+    
+    public void initTxt() {
+    	living = new JTextField("Living stay", 8);
+    	living.addActionListener(new ActionListener() {
+    		public void actionPerformed(ActionEvent e) {
+    			liv = living.getText();
+    		}
+    	});
+    	
+    	dead = new JTextField("Dead to life", 8);
+    	dead.addActionListener(new ActionListener() {
+    		public void actionPerformed(ActionEvent e) {
+    			de = dead.getText();
+    		}
+    	});
+    	
+    	nth = new JTextField("nth", 8);
+    	nth.addActionListener(new ActionListener() {
+    		public void actionPerformed(ActionEvent e) {
+    			n = Integer.parseInt(nth.getText());
+    		}
+    	});
+    }
+    
+    public void initLab() {		//Kai could not solve
+		generation = new JLabel();
+		generation.setText("The genration is: " + Gen);
+    }
+
+    public void initBtns() {
+		firstBtn = new JButton("Start");
+		secondBtn = new JButton("Stop");
+		thirdBtn = new JButton("Clear");
+		fourthBtn = new JButton("Back");
+		SlowBtn = new JButton("Slower");
+		QuickBtn = new JButton("Faster");
+		
+		firstBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				timer.start();
+				//System.out.println("The button got pressed!");
+			}
+		});	
+		secondBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				timer.stop();
+			}
+		});	
+		thirdBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//make a copy of current cells
+				int[][] Copy = new int[cells.length][cells[0].length];
+				for (int i = 0; i < Copy.length; i++) {
+		    		for (int j = 0; j < Copy[i].length; j++) {
+		    			Copy[i][j]=cells[i][j];
+		    		}
+		    	}
+				
+				//make current cells to be white
+				for (int i = 0; i < Copy.length; i++) {
+		    		for (int j = 0; j < Copy[i].length; j++) {
+		    			cells[i][j]=0;
+		    		}
+		    	}
+				drawCells(pic.getGraphics());
+			}
+		});	
+		fourthBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				for (int i = 0; i < cells.length; i++) {
+					for (int j = 0; j < cells[i].length; j++) {
+						//0.5 represents the probability of a cell being filled (=1) without needing an if statement
+						cells[i][j] = (int)(Math.random()+0.5);
+					}
+				}
+			}
+		});
+		
+		SlowBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				timer.stop();
+				sec+=100;	//after each click, it is going to be slower
+				System.out.println("The timer speed now is: " + sec);
+				timer.setDelay(sec);
+				timer.start();
+			}
+		});	
+		
+		QuickBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				timer.stop();
+				if (sec > 100) {
+					sec-=100;	
+				}
+				System.out.println("The timer speed now is: " + sec);
+				timer.setDelay(sec);
+				timer.start();
+			}
+		});	
+		
+    }
+
+    public void initPic() {
+    	//the pic variable is defined in the class constructor
+		cells = new int[pic.getWidth(null)][pic.getHeight(null)];				// initialize the cells
+		for (int i = 0; i < cells.length; i++) {
+			for (int j = 0; j < cells[i].length; j++) {
+				//0.5 represents the probability of a cell being filled (=1) without needing an if statement
+				cells[i][j] = (int)(Math.random()+0.5);
+			}
+		}
+		Graphics g = pic.getGraphics();
+	    if (Gen%n == 0) {	//if it is nth, draw it
+			for (int i = 0; i < cells.length; i++) {
+	    		for (int j = 0; j < cells[i].length; j++) {
+	    			if (cells[i][j] == 1) {
+	    		    	g.setColor(Color.BLACK);
+	    				g.fillRect(i*size, j*size, size, size);
+	    			}
+	    			else {
+	    				g.setColor(Color.WHITE);
+	    				g.fillRect(i*size, j*size, size, size);
+	    			}
+	    		}
+	    	}
+	    }
+		picLabel = new JLabel(new ImageIcon(pic));
+    }
+    
+    //you do not need to edit this function
+    public void paintComponent(Graphics g)  	                 // draw graphics in the panel
+    {
+        super.paintComponent(g);                              	 // call superclass to make panel display correctly
+    }
+        
+    
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		//things to change every timer tick
+		updateCells();			
+        drawCells(pic.getGraphics());
+		repaint();
+		initLab();
+	}
+	
+	
+	//use setColor and fillRect to adjust the corresponding graphics to cells in the pic variable
+	private void drawCells(Graphics g) {
+    	if (Gen%n == 0) { //if it is nth genration, draw it
+			for (int i = 0; i < cells.length; i++) {
+	    		for (int j = 0; j < cells[i].length; j++) {
+	    			if (cells[i][j] == 1) {
+	    		    	g.setColor(Color.BLACK);
+	    				g.fillRect(i*size, j*size, size, size);
+	    			}
+	    			else {
+	    				g.setColor(Color.WHITE);
+	    				g.fillRect(i*size, j*size, size, size);
+	    			}
+	    		}
+	    	}
+    	}
+	}
+
+	//say what happens to the cells array
+	private void updateCells() {
+		Copy = new int[cells.length][cells[0].length];
+		int N = 2;
+		for (int i = 0; i < Copy.length; i++) {
+    		for (int j = 0; j < Copy[i].length; j++) {
+    			//copy the cells 2D array
+    			Copy[i][j]=cells[i][j];
+    			//if one location is black, find its neighbors
+    			if (cells[i][j] == 1) { //is a live
+    				N = countNeighbors(i,j);
+    				
+    				//JTextField interaction number setup
+    				boolean stayAlive = false;
+    				//String pp = liv.substring(0);
+    				for (int z = 0; z < liv.length(); z++) {		//make the user inputs into actual integers
+    					int inputNum = Integer.parseInt(liv.substring(z,z+1));
+    					if (N == inputNum) {	//if is any of the user input number, it can stay alive
+    						stayAlive = true;
+    					}
+    				}
+    				if (stayAlive == false) {	//if it DOES NOT have any of the input number, it will die
+    					Copy[i][j] = 0;	
+    				}
+    				
+    				/**
+    				if (N != 2 && N != 3) {		//this is the original one without bonus
+        				Copy[i][j] = 0;		//make the alive cell in the copied array die if it does not have 2 or 3 neighbors
+        			}
+        			*/
+    			}
+    			if (cells[i][j] == 0) {		//dead cell
+    				N = countNeighbors(i,j);
+    				
+    				
+    				//JTextField interaction number setup
+    				boolean CometoLife = false;		
+    				for (int v = 0; v < de.length(); v++) {	
+    					int inputnum = Integer.parseInt(de.substring(v,v+1));
+    					if (N == inputnum) {	//if is any of the user input number, it can come to life
+    						CometoLife = true;
+    					}
+    				}
+    				if (CometoLife) {	//come to life
+    					Copy[i][j] = 1;	
+    				}
+    				
+    				/**
+    				if (N == 3) {	//the original one without bonus question
+        				Copy[i][j] = 1;		//make the dead cell in the copied array alive because it has 3 neighbors
+        			}
+        			*/
+    			}
+    			
+    		}
+    	}
+		
+		//make cells to be copy
+		for (int i = 0; i < Copy.length; i++) {
+    		for (int j = 0; j < Copy[i].length; j++) {
+    			cells[i][j]=Copy[i][j];
+    		}
+    	}
+		Gen++;
+	}
+
+	//given a location identified by row and col, returns how many living neighbors
+	//are in the 8 cells adjacent to that location (8 to include diagonally adjacent)
+	private int countNeighbors(int row, int col) {
+		int neighbor = 0;
+
+		//check if the cell is on a corner:
+			//up left corner	
+				if (row==0 && col==0) {
+					if (cells[row+1][col]==1) neighbor++;
+					if (cells[row][col+1]==1) neighbor++;
+					if (cells[row+1][col+1]==1) neighbor++;
+					if (cells[pic.getHeight(null)-1][col+1]==1) neighbor++;
+					if (cells[pic.getHeight(null)-1][col]==1) neighbor++;
+					if (cells[row][pic.getWidth(null)-1]==1) neighbor++;
+					if (cells[row+1][pic.getWidth(null)-1]==1) neighbor++;		
+					if (cells[pic.getHeight(null)-1][pic.getWidth(null)-1]==1) neighbor++;
+				}
+			//up right corner
+				else if (row==0 && col==pic.getWidth(null)-1) {
+					if (cells[row+1][col]==1) neighbor++;
+					if (cells[pic.getHeight(null)-1][col]==1) neighbor++;
+					if (cells[row][0]==1) neighbor++;
+					if (cells[row][col-1]==1) neighbor++;
+					if (cells[row+1][0]==1) neighbor++;
+					if (cells[row+1][col-1]==1) neighbor++;		
+					if (cells[pic.getHeight(null)-1][0]==1) neighbor++;
+					if (cells[pic.getHeight(null)-1][col-1]==1) neighbor++;
+				}
+			//down left corner
+				else if (row==pic.getHeight(null)-1 && col==0) {
+					if (cells[0][col]==1) neighbor++;
+					if (cells[row-1][col]==1) neighbor++;
+					if (cells[row][col+1]==1) neighbor++;
+					if (cells[row][pic.getWidth(null)-1]==1) neighbor++;
+					if (cells[0][col+1]==1) neighbor++;
+					if (cells[0][pic.getWidth(null)-1]==1) neighbor++;		
+					if (cells[row-1][col+1]==1) neighbor++;
+					if (cells[row-1][pic.getWidth(null)-1]==1) neighbor++;
+				}
+			//down right corner
+				else if (row==pic.getHeight(null)-1 && col==pic.getWidth(null)-1) {
+					if (cells[0][col]==1) neighbor++;
+					if (cells[row-1][col]==1) neighbor++;
+					if (cells[row][0]==1) neighbor++;
+					if (cells[row][col-1]==1) neighbor++;
+					if (cells[0][0]==1) neighbor++;
+					if (cells[0][col-1]==1) neighbor++;		
+					if (cells[row-1][0]==1) neighbor++;
+					if (cells[row-1][col-1]==1) neighbor++;
+				}
+				//other cells on the edges:
+				else if (row==0) {
+					if (cells[row+1][col]==1) neighbor++;
+					if (cells[pic.getHeight(null)-1][col]==1) neighbor++;
+					if (cells[row][col+1]==1) neighbor++;
+					if (cells[row][col-1]==1) neighbor++;
+					if (cells[row+1][col+1]==1) neighbor++;
+					if (cells[row+1][col-1]==1) neighbor++;		
+					if (cells[pic.getHeight(null)-1][col+1]==1) neighbor++;
+					if (cells[pic.getHeight(null)-1][col-1]==1) neighbor++;
+				}
+				else if (col==0) {
+					if (cells[row+1][col]==1) neighbor++;
+					if (cells[row-1][col]==1) neighbor++;
+					if (cells[row][col+1]==1) neighbor++;
+					if (cells[row][pic.getWidth(null)-1]==1) neighbor++;
+					if (cells[row+1][col+1]==1) neighbor++;
+					if (cells[row+1][pic.getWidth(null)-1]==1) neighbor++;		
+					if (cells[row-1][col+1]==1) neighbor++;
+					if (cells[row-1][pic.getWidth(null)-1]==1) neighbor++;
+				}
+				else if (row==pic.getHeight(null)-1) {
+					if (cells[0][col]==1) neighbor++;
+					if (cells[row-1][col]==1) neighbor++;
+					if (cells[row][col+1]==1) neighbor++;
+					if (cells[row][col-1]==1) neighbor++;
+					if (cells[0][col+1]==1) neighbor++;
+					if (cells[0][col-1]==1) neighbor++;		
+					if (cells[row-1][col+1]==1) neighbor++;
+					if (cells[row-1][col-1]==1) neighbor++;
+				}
+				else if (col==pic.getWidth(null)-1) {
+					if (cells[row+1][col]==1) neighbor++;
+					if (cells[row-1][col]==1) neighbor++;
+					if (cells[row][0]==1) neighbor++;
+					if (cells[row][col-1]==1) neighbor++;
+					if (cells[row+1][0]==1) neighbor++;
+					if (cells[row+1][col-1]==1) neighbor++;		
+					if (cells[row-1][0]==1) neighbor++;
+					if (cells[row-1][col-1]==1) neighbor++;
+				}
+				//if not on the edge or corners, then:
+				else {
+					if (cells[row+1][col]==1) neighbor++;
+					if (cells[row-1][col]==1) neighbor++;
+					if (cells[row][col+1]==1) neighbor++;
+					if (cells[row][col-1]==1) neighbor++;
+					if (cells[row+1][col+1]==1) neighbor++;
+					if (cells[row+1][col-1]==1) neighbor++;		
+					if (cells[row-1][col+1]==1) neighbor++;
+					if (cells[row-1][col-1]==1) neighbor++;
+				}
+				
+				return neighbor;
+	}
+	
+	//mouse input
+	private class MAdapter extends MouseAdapter {
+		
+		@Override
+		public void mousePressed(MouseEvent e) {
+			//clicked is not pressed
+			System.out.println("Mouse got pressed in the panel at (" + e.getX() + ", " + e.getY() + ")");
+			System.out.println("On the screen, it happened at (" + e.getXOnScreen() + ", " + e.getYOnScreen() + ")");
+		}
+		
+//		@Override
+//		public void mouseMoved(MouseEvent e) {
+//			//things for whenever the mouse moves
+//		}
+		
+//		@Override
+//		public void mouseDragged(MouseEvent e) {
+//			//things for when the mouse is dragged (pressed and held down while moving)
+//		}
+
+//		@Override
+//		public void mouseClicked(MouseEvent e) {
+//			//a click is a press and then a release
+//		}
+		
+//		@Override
+//		public void mouseReleased(MouseEvent e) {
+//			//things for when the mouse button is released
+//		}
+	}
+}
