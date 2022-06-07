@@ -1,0 +1,162 @@
+
+public class FebruaryBonus {
+	
+	public static void main (String[] args) {
+		one();
+		two();		//each children, no teacher, teacher is people[0]
+	}
+	
+	/*
+	1. If we were establishing its own mint, what values of coins would be ideal to yield 
+	the smallest number of coins in any transaction? When picking values, let’s say we’re 
+	limiting our mint to four different coin denominations — replacing the current common 
+	American ones of penny, nickel, dime and quarter. You can either focus on limiting the 
+	max number of coins needed or the average number of coins needed.
+	*/
+	
+	public static void one () {
+		//number of coins ABCD used in each transaction amount
+		int numA = 0;
+		int numB = 0;
+		int numC = 0;
+		int numD = 0;
+		int amt;
+				
+		int[] minCoin = {1,2,3,4};	//the denominations of coins that have the minimum number 
+		int mimTotal = 5000;	//the sum number of min numbers
+		int totalcoin = 0;		//the current number of coin numbers used
+		
+		//a has the smallest denomination, d has the largest		
+		int a = 1;
+		for (int b = a+1; b < 98; b++) {
+			for (int c = b+1; c < 99; c++) {
+				for (int d = c+1; d < 100; d++) {
+				//for every combination of {a,b,c,d}, find the total coins needed
+					for (int amount=1; amount<100; amount++) {
+						
+					amt = amount;
+					//get the amounts of coins used
+					numD = amt/d;
+					amt = amt%d;
+					numC = amt/c;
+					amt = amt%c;
+					numB = amt/b;
+					amt = amt%b;
+					numA = amt/a;
+					
+					//add the amount to total coins used in with {a,b,c,d}
+					totalcoin += (numA+numB+numC+numD);
+				}
+				if (totalcoin<mimTotal)	{
+					//get the current minimum sum number of coins
+					mimTotal = totalcoin;
+					//change the denominations of the min coins
+					minCoin[0] = a;
+					minCoin[1] = b;
+					minCoin[2] = c;
+					minCoin[3] = d;
+				}
+				//set the current total coins back
+				totalcoin = 0;
+			}
+		}
+			
+	}
+		//print out the coins and its amount
+		for (int c: minCoin) {
+			System.out.print(c+", ");
+		}
+		System.out.println("and the min total of coins used is: " + mimTotal);
+	}	
+	
+	/*
+	2. A class of 30 children is playing a game where they all stand in a circle along with their teacher. 
+	The teacher is holding two things: a coin and a potato. The game progresses like this: The teacher 
+	tosses the coin. Whoever holds the potato passes it to the left if the coin comes up heads and to 
+	the right if the coin comes up tails. The game ends when every child except one has held the potato, 
+	and the one who hasn’t is declared the winner.
+	
+	How do a child’s chances of winning change depending on where they are in the circle? In other words, 
+	what is each child’s win probability?
+	*/
+	
+	public static void two () {	
+		int win[] = new int [30]; 		//this will help to get the scores
+		
+		for (int q = 0; q < 100000; q++) {
+			
+			int[] people = new int [31];    //the number increase to the right, and 30 is to 0
+			int pos = 0; //the position of the potato, which starts on the teacher
+			
+			for (int s: people) {
+				people[s]=0;    //people did not get the potato equal to 0
+			}
+			people[0]=1;    //the teacher got the potato, so it is equal to 1.
+			
+			boolean heads = true;   //to randomly give a heads or tails
+			int coin = (int)(Math.random()*2)+1;
+			if(coin==1) heads = true;
+			if(coin==2) heads = false;
+			int count; //keep track of number of people who got potato
+			
+			while (true) {
+				if (heads) {  //to the left
+					if(pos==0) {
+						pos=30;
+					}
+					else {
+						pos--;
+					}
+					people[pos]=1;
+					
+					//check
+					count = 0;
+					for (int i=1; i<people.length; i++) {
+						if (people[i]==1) {
+							count++;
+						}
+					}
+					if (count == 29) {
+						break;
+					}
+				}
+				if (heads==false) {  //to the right
+					if(pos==30) {
+						pos=0;
+					}
+					else {
+						pos++;
+					}
+					people[pos]=1;
+					
+					//check			
+					count = 0;
+					for (int i=1; i<people.length; i++) {
+						if (people[i]==1) {
+							count++;
+						}
+					}
+					if (count == 29) {
+						break;
+					}
+				}
+				//if there's no winner yet, toss again
+				coin = (int)(Math.random()*2)+1;
+				if(coin==1) heads = true;
+				if(coin==2) heads = false;
+			}
+			
+			for (int i=1; i<people.length; i++) {	//we don't need probability of teacher (people[0])
+				if (people[i]==0) {
+					win[i-1]++;
+				}
+			}
+		}
+		
+		//print out the probabilities
+		for (int k = 0; k < win.length; k++) {
+			int Num = k+1;
+			System.out.println("Children No.[" + Num + "]'s probability: " + win[k]/100000.0*100 + "%.");
+		}
+	}
+}
