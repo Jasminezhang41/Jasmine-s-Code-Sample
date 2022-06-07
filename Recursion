@@ -1,0 +1,181 @@
+import java.util.Arrays;
+
+public class Recursion {
+
+	//assumes positive integer input
+	public static void collatz(int start) { 		//I wonder what this does
+		if (start != 1) {
+			System.out.println(start);
+			if (start % 2 == 0) { //the % operator returns a remainder.  22 % 3 = 1, for example.
+				collatz(start / 2);
+			} else {
+				collatz(3*start + 1);
+			}
+		} else {
+			System.out.println("1. Once again.");
+		}
+	}
+	
+	//Finds the nth term in the sequence a_n = 3*a_(n-1) - 5 and a0 = 4
+//	public static int seq(int n) {
+//		if (n == 0) {
+//			return 4;
+//		}
+//		else {
+//			return 3*seq(n-1)-5;
+//		}
+//	}
+	
+	//assumes non-negative integer input
+	//computes start!
+	public static int factorial(int start) {
+		if (start>=1) {
+			return start*factorial(start-1);
+		}
+		else {
+			return 1;
+		}
+	}
+	
+	//Return the nth term in the fibonacci sequence
+	public static int fibonacci(int n) {
+		if (n<=1) {
+			return n;
+		}
+		else {
+			return fibonacci(n-1)+fibonacci(n-2);
+		}
+	}
+	
+	//returns nCk (combinations/Pascal's triangle entry...do not use factorial)
+	//I'd recommend looking at Yang Hui's/Pascal's Triangle.
+	public static int choose(int n, int k) {
+		if (k==0 || n==k) {
+			return 1;
+		}
+		else {
+			return choose(n-1,k-1)+choose(n-1,k);
+		}
+	}
+	
+	//Return the reverse value of a string. "Hello!" should return "!olleH".
+	public static String reverse(String in) {
+		//System.out.println(in.length());
+		if (in.length()<=0) {
+			return in;
+		}
+		else {
+		System.out.print(in.substring(in.length()-1));
+		return reverse(in.substring(0,in.length()-1));
+		}
+	}
+	
+	//the recursive function used to return the first set of common string character with recursion.
+	//lookNSayHelp("1113") should return "111"
+	public static String lookNSayHelp(String in) {
+		if (in.length()>=2 && in.substring(1,2).equals(in.substring(0,1))) {
+			return in.substring(0, 1) + lookNSayHelp(in.substring(1,in.length()));
+		}
+		else if (in.length()>=2 && !in.substring(1,2).equals(in.substring(0,1))) {
+			return in.substring(0,1);
+		}
+		else {
+			return in;
+		}
+	}
+	
+	//return the next look-and-say string
+	//Use lookNSay from before to help you
+	//lookNSay("1113") will return "3113" as the string starts with three 1's followed by one 3.
+	public static String lookNSay(String in) {
+		if(in.length() == 0) {
+			return "";
+		}
+		String b= lookNSayHelp(in);
+		return b.length() + b.substring(0,1) + lookNSay(in.substring(b.length()));
+	}
+	
+	public static void sort(int[] nums) {
+		if (nums.length<2) {
+			return;
+		}
+		
+		int mid=nums.length/2;
+		int[] l=new int[mid];
+		int[] r=new int[nums.length - mid];
+		copyArray(nums, l, 0, mid, 0);
+		copyArray(nums, r, mid, nums.length, mid);
+		sort(l);
+		sort(r);
+		merge(nums, l, r);
+	}
+	
+	public static void merge(int[] nums, int[] l, int[]r) {
+		int i=0, j=0, k=0;
+		while(i<l.length && j<r.length) {
+			if(l[i]<=r[j]) {
+				nums[k]=l[i];
+				k++;
+				i++;
+			} 
+			else {
+				nums[k]=r[j];
+				k++;
+				j++;
+			}
+		}
+		
+		while(i<l.length) {
+			nums[k]=l[i];
+			k++;
+			i++;
+		}
+		while(j<r.length) {
+			nums[k]=r[j];
+			k++;
+			j++;
+		}
+	}
+	
+	public static void copyArray(int[] src, int[] dest, int i, int n, int mid) {
+		if(i == n) return;
+		if(mid != 0) {
+			dest[i - mid] = src[i];
+		} 
+		else{
+			dest[i] = src[i];
+		}
+		copyArray(src, dest, i + 1, n, mid);
+	}
+
+	public static void main(String[] args) {
+		
+		System.out.println("1) 6! is " + factorial(6));
+		System.out.println("2) The 7th term in the Fibonacci sequence is "+ fibonacci(7));
+		System.out.println("3) 4C2 is "+ choose(4,2));
+		System.out.print("4) The reverse of Hello! is "); System.out.println(reverse("Hello!"));
+		System.out.print("5) The first block of similar character is "); System.out.println(lookNSayHelp("1113"));
+		System.out.print("6) Read out lookNsay: "); System.out.println(lookNSay("111311"));
+		int numElements = 100; //how long the list to sort will be
+		int[] data = new int[numElements];
+		int temp = 0;
+		int index = 0;
+		for (int i = 0; i < numElements; i++) { // fill the data array
+			data[i] = i + 1;
+		}
+		for (int i = 0; i < numElements; i++) { // a basic shuffle algorithm
+			index = i+(int)(Math.random()*(numElements-i));
+			temp = data[i];
+			data[i] = data[index];
+			data[index] = temp;
+		}
+		System.out.println("7) Original array is: " + Arrays.toString(data)); 
+		sort(data);
+		System.out.println(" The sorted array is: " + Arrays.toString(data));
+
+		//String methods reminder
+		//String longstring = "I guess this is a long string.";
+		//the single slash, \, lets you use quote marks in strings
+		//System.out.println("Also, longstring.startsWith(\"I g\") returns " + longstring.startsWith("I g"));
+	}
+}
