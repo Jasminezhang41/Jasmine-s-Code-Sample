@@ -1,0 +1,229 @@
+import java.util.ArrayList;
+
+/*
+ 3. Shut the Box is a traditional pub game played with dice and a special box. The game's box features 
+ six tiles bearing the numbers 1 through 6. Those tiles rest on flippable levers, all of which begin 
+ the game "open." To start the game, you roll one standard six-sided die. You can then "shut" any 
+ combination of number tiles that add up to your die. For example, if you roll 6, you could shut the 6; 
+ or the 1 and 5; or the 1, 2, and 3; and so on. Once a number is shut, it stays shut. After you've shut 
+ your chosen numbers, you roll again and repeat the process.
+ 
+ You win if you close all of the numbers before you run out of legal moves - that is, if you can't shut 
+ numbers that add up to your dice count. If you play perfectly, what are your odds of successfully 
+ "shutting the box"? Write code that tells you the probabilities as you play the game. This is extra 
+ challenging and should be submitted as it's own file!
+ */
+
+public class ShutTheBox {
+	public static void main (String[] args) {
+		int n = 3;
+		boolean[] arr = new boolean [n];
+		
+		for (int i = 0; i<arr.length; i++) {
+			arr[i] = true;
+			//true = not shut yet
+			//false = shut
+		}
+		
+		int Win = 0;
+		for (int u = 0; u<10000; u++) {
+			boolean gameEnd = false;
+			while (!gameEnd) {
+				int r = roll(arr);
+				ArrayList<Double> theComb = testProbComb(arr, r);
+				shut(arr, theComb);
+				
+				gameEnd = true;
+				for (int h = 0; h<arr.length; h++) {
+					if (arr[h]) {
+						gameEnd = false;
+					}
+				}
+			}
+			
+			//test if wins
+			boolean isWin = true;
+			for (int h = 0; h<arr.length; h++) {
+				if (arr[h]) {
+					isWin = false;
+				}
+			}
+			if (isWin) {
+				Win++;
+			}
+		}
+		
+		System.out.println("The odds of wining is: " + Win/10000.0);
+	}
+	
+	public static int roll(boolean[] arr) {
+		int one = (int)(Math.random()*6)+1;
+		int two = (int)(Math.random()*6)+1;
+		if (testProbDice(arr)==1) {
+			two = 0;
+		}
+		return one + two;
+	}
+	
+	//for the list of numbers in comb, every corresponding number is going to be shut, which is going to turned false
+	public static boolean[] shut (boolean[] arr, ArrayList<Double> comb) {
+		for (int i = 0; i<comb.size()-1; i++) { //the last one of comb is the probability
+			arr[(int) (comb.get(i)-1)] = false;
+		}
+		return arr; 
+	}
+	
+	//choose one dice or two
+	public static int testProbDice(boolean[] arr) {
+		
+		//if (arr[6]==arr[7]==arr[8]==false) {
+		//	return 1;
+		//}
+		
+		//example, only 1 remains unshut
+		if (arr[0]==false) {
+			for (int i = 1; i<arr.length; i++) {
+				if (arr[i]==true) {
+					return 2;
+				}
+			}
+			return 1;
+		}
+		
+		
+		//prob win of ONE dice
+		int winOne = 0;
+		int winTwo = 0;
+		for (int k=0; k<100; k++) {
+			int numOne = (int)(Math.random()*6)+1;
+			int numTwo = (int)(Math.random()*6)+1 + (int)(Math.random()*6)+1;
+			
+			//check each num prob
+			ArrayList<Double> A = testProbComb(arr, numOne);
+			ArrayList<Double> B = testProbComb(arr, numTwo);
+			if (A.get(A.size()-1) > B.get(B.size()-1)) {	//the last double num of testProbComb is the max probability
+				winOne++;
+			}
+			else {
+				winTwo++;
+			}
+		}
+		
+		//compare which one is better to choose: One dice or Two
+		if (winOne > winTwo) {
+			return 1;
+		}
+		return 2;
+	}
+	
+	//this is going to choose the best combination for num
+	public static ArrayList<Double> testProbComb(boolean[] arr, int num) {
+		ArrayList<ArrayList<Double>> list = findComb(arr, num); //all possible combinations represented by ArrayList<Double>
+		double maxProb = 0;
+		ArrayList<Double> bestComb = new ArrayList<Double>();
+		if (list.size()==0) {
+			bestComb.add((double) 0);
+			return bestComb; //there's no possible combination, maxProb is 0
+		}
+		//the last double num of the array list is not the combination,
+		//But the MAX probability!!!
+		
+		for (int i = 0; i<list.size(); i++) { //test each combination
+			int win = 0; //keeps track of the #of times current combination is going to win
+			for (int e=0; e<1000; e++) {
+				//copy arr to array
+				boolean[] array = new boolean [arr.length];
+				for (int c=0; c<arr.length; c++) {
+					array[c] = arr[c];
+				}
+				//mock what is going to happen if choose list.get(i) combination
+				array = shut(array, list.get(i));
+				boolean gameEnd = false;
+				while (!gameEnd) {
+					int r = roll(array);
+					ArrayList<Double> theComb = testProbComb(array, r); //??infinite loop
+					if (theComb.size()==1) {
+						break;
+					}
+					shut(array, theComb);
+					
+					gameEnd = true;
+					/**
+					for (int h = 0; h<array.length; h++) {
+						if (array[h]) {
+							gameEnd = false;
+						}
+					}
+					if (list.size()==0) {
+						gameEnd = true;
+					}
+					**/
+				}
+				
+				//test if wins
+				boolean isWin = true;
+				for (int h = 0; h<array.length; h++) {
+					if (array[h]) {
+						isWin = false;
+					}
+				}
+				if (isWin) {
+					win++;
+				}
+			}
+			
+			//compare current winProb to maxProb
+			if (win/1000.0 > maxProb) {
+				maxProb = win/1000.0;
+				bestComb = list.get(i);
+			}
+		}
+		//I also want the max Prob
+		return bestComb;
+	}
+	
+	//this is going to provide possible combinations of numbers that add up to num
+	public static ArrayList<ArrayList<Double>> findComb(boolean[] arr, int num) {
+		ArrayList<ArrayList<Double>> list= new ArrayList<ArrayList<Double>> ();
+		//each combination is presented by a ArrayList<Double>
+		//the first combination is the number itself
+		ArrayList<Double> o = new ArrayList<Double>();
+		o.add((double) num);
+		if (num <= arr.length) {
+			list.add(o);
+		}
+		//possible combination of two with num
+		for (int a = 0; a<arr.length-1; a++) {
+			for (int b = 0; b<arr.length; b++) {
+				if (a + b + 2 > num) {
+					break;
+				}
+				if (a + b + 2 == num) {
+					ArrayList<Double> comb = new ArrayList<Double>();
+					comb.add((double) (a+1));
+					comb.add((double) (b+1));
+					list.add(comb);
+				}
+			}
+		}
+		//possible combination of three with num
+		for (int a = 0; a<arr.length-2; a++) {
+			for (int b = 0; b<arr.length-1; b++) {
+				for (int c = 0; c<arr.length; c++) {
+					if (a + b + c + 3 > num) {
+						break;
+					}
+					if (a + b + c + 3 == num) {
+						ArrayList<Double> comb = new ArrayList<Double>();
+						comb.add((double) (a+1));
+						comb.add((double) (b+1));
+						comb.add((double) (c+1));
+						list.add(comb);
+					}
+				}
+			}
+		}
+		return list;
+	}
+	
+}
