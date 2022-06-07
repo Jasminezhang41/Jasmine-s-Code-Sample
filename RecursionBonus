@@ -1,0 +1,137 @@
+import java.util.Arrays;
+
+public class RecursionBonus {
+	
+	public static int [] First(int in[]) {
+		if (in.length==1) {
+			System.out.print(in[0]);
+		}
+		
+		else if (in.length>1) {
+			
+			//The first index
+				System.out.println(in[0] + ", ");
+				
+			//Create "fixed", the fixed start
+			for (int w=1; w<in.length;w++) {	
+				int[] fixed = new int[2];
+				fixed [0]=in[0];
+				fixed [1]=in[w];
+				
+			//Print the "fixed" two index
+				for (int l: fixed) {
+					System.out.print(l);
+				}
+				System.out.println(", ");
+			
+			//The "fixed" two index with other combinations, a total of three index
+				for (int h=w+1;h<in.length;h++) {
+					for (int s: fixed) {
+						System.out.print(s);
+					}
+					System.out.println(in[h] + ", ");
+				}
+			}
+			
+			//The whole thing
+				if (in.length>3) {
+					for (int p: in) {
+						System.out.print(p);
+					}
+					System.out.println(", ");
+				}
+				
+			return First(Reducedarray(in));
+		}
+		return null;
+	}
+	
+	//shorter length with the in[0] being removed
+	private static int[] Reducedarray(int in[]) {
+		int[] a = new int[in.length-1];
+		for (int i = 0; i < a.length; i++) {
+			a[i] = in[i+1];
+		}
+		return a;
+	}
+	
+	public static boolean groupSum(int start, int[] nums, int target) {
+		if (nums.length-start==1) {
+			int sum = nums[start];
+			System.out.println(nums[start] + ": " + sum);
+			if (sum==target) return true;
+		}
+		
+		else if (nums.length-start>1) {
+			int sum = 0;
+			for (int u=start+1; u<nums.length;u++) {
+				int fixednum=nums.length-u+1;
+				int [] fixed=new int[fixednum];
+				//Fill in the index of fixed array
+				if (fixed.length==nums.length-start) {
+					for (int c=start;c<nums.length;c++) {
+						fixed[c-start]=nums[c];
+					}
+					/////
+					for (int s:fixed) {
+						System.out.print(s);
+					}
+					//Get sum
+					for (int value : fixed) {
+				        sum += value;
+				    }
+					System.out.println(": " + sum);
+					if (sum==target) return true;
+				}
+				else {
+					for (int c=start; c<fixed.length; c++) {
+						fixed[c-start]=nums[c];
+					}
+					for (int b=fixed.length-1+start; b<nums.length; b++) {
+						fixed [fixed.length-1]=nums[b];
+						for (int s:fixed) {
+							System.out.print(s);
+						}
+						sum = 0;
+						//Get sum
+						for (int value : fixed) {
+					        sum += value;
+					    }
+						System.out.println(": " + sum);
+						if (sum==target) return true;
+					}
+				}
+				
+			}
+			
+			sum=nums[start];
+			System.out.println(nums[start] + ": "+sum);
+			if (sum==target) return true;	
+				
+			return groupSum(0, Reducedarray(nums), 1);
+		}
+		return false;
+	}
+	
+	
+	public static void main(String[] args) {
+		
+		int numElements = 4; //Only applicable for 4 index and below
+		int[] in = new int[numElements];
+		int temp = 0;
+		int index = 0;
+		for (int i = 0; i < numElements; i++) { 
+			in[i] = i + 1;
+		}
+		for (int i = 0; i < numElements; i++) { 
+			index = i+(int)(Math.random()*(numElements-i));
+			temp = in[i];
+			in[i] = in[index];
+			in[index] = temp;
+		}
+		System.out.println("The array is: " + Arrays.toString(in)); 
+		System.out.println("The combinations are: "); System.out.println(First(in));
+		System.out.println("The combinations : their sum"); System.out.print(groupSum(0, in, 1));
+		
+	}
+}
