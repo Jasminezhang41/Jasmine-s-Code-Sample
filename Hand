@@ -1,0 +1,185 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class Hand {
+		int value;
+		String suit;
+	  	List<Card> cards;
+	  	
+	  	private static List<Card> dealt;
+	  	
+		public Hand() {
+			this.cards = new ArrayList<>();
+		}
+
+		public static void main(String[] args) {
+			dealt = new ArrayList<>();
+			Card[] deck = Card.makeDeck();
+			
+			Hand player = new Hand();
+			Hand dealer = new Hand();
+			
+			//each start with two cards:
+			player.hit(deck, dealt); 	player.hit(deck, dealt);
+			dealer.hit(deck, dealt); 	dealer.hit(deck, dealt);
+			System.out.print("Player cards: ");
+			player.printHand(); 	System.out.println("[SCORE] " + player.handValue());
+			System.out.print("Dealer cards: "); 
+			dealer.printHand(); 	System.out.println("[SCORE] " + dealer.handValue());
+			
+			//check whether the player needs to play the game or not:
+			if (player.handValue()==21) {
+				System.out.print("Ace and a 10! You win! Want to play again? (yes/no)");
+				Scanner inn = new Scanner(System.in);
+				if (inn.nextLine().equals("yes")) {
+					main(null);
+				}	
+		    	System.exit(0);
+			}
+			else if (player.handValue()==21) {
+				System.out.print("Oh no! You lose! Want to play again? (yes/no)");
+				Scanner inn = new Scanner(System.in);
+				if (inn.nextLine().equals("yes")) {
+					main(null);
+				}	
+		    	System.exit(0);
+			}
+						
+			//Game starts:
+			boolean hit = true;
+			
+			System.out.println("hit or stay?");
+			Scanner inn = new Scanner(System.in);
+			do {
+				if (inn.nextLine().equals("hit")) {
+					player.hit(deck, dealt);
+					System.out.print("Player cards: ");
+					player.printHand();
+					System.out.println("[SCORE] " + player.handValue());
+					if (player.handValue()>21) {
+						//bust!
+						System.out.print("oops! You lose! Want to play again? (yes/no)");
+						inn = new Scanner(System.in);
+						if (inn.nextLine().equals("yes")) {
+							main(null);
+						}	
+				    	System.exit(0);
+					}
+					System.out.println("hit or stay?");
+				}
+				if (inn.nextLine().equals("stay")) {
+					hit = false;
+					break;
+				}
+				
+			} while (hit==true);
+			
+			//dealer starts to get cards:
+			while (dealer.handValue() < 17) {
+				dealer.hit(deck, dealt);
+				System.out.print("Dealer cards: ");
+				dealer.printHand();
+				System.out.println("[SCORE] " + dealer.handValue());
+				if (dealer.handValue()>21) {
+					//bust!
+					System.out.print("Yes! You win! Want to play again? (yes/no)");
+					inn = new Scanner(System.in);
+					if (inn.nextLine().equals("yes")) {
+						main(null);
+					}	
+			    	System.exit(0);
+				}
+			}
+			
+			// compare the value
+			if(player.handValue() > dealer.handValue()) {
+				System.out.println("Congratulation! You win! Want to play again? (yes/no)");
+				inn = new Scanner(System.in);
+				if (inn.nextLine().equals("yes")) {
+					main(null);
+				}	
+		    	System.exit(0);
+			} else {
+				System.out.println("You lose the game! Want to play again? (yes/no)");
+				inn = new Scanner(System.in);
+				if (inn.nextLine().equals("yes")) {
+					main(null);
+				}	
+		    	System.exit(0);
+			}
+		}
+		
+		public int handValue() {
+			int score = 0;
+			int ace = 0;
+			for (Card c: cards) { 
+				if (c.value < 10) {
+					score += c.value;
+				} 
+				else if(c.value >= 10 && c.value < 14) {
+					score += 10;
+				} 
+				else {
+					// deal with Ace:
+					score += 11;
+					ace++;
+				}
+			}
+			if (score > 21 && ace > 0) {
+				// recount ace as 1 indead of 11
+				score = 0;
+				for (Card c: cards) { 
+					if (c.value < 10) {
+						score += c.value;
+					} 
+					else if(c.value >= 10 && c.value < 14) {
+						score += 10;
+					} 
+					else {
+						score += 1;
+					}
+				}
+			}
+			return score;
+		}
+		
+		public void hit(Card[] cards, List<Card> dealt) {
+			boolean unique = true;
+			Card drawn;
+			do {
+				unique = true;
+				int index = (int)(Math.random() * 51); //0 - 51
+				drawn = cards[index];
+				for (Card c : dealt) {
+					if (c.value == drawn.value && c.suit.equals(drawn.suit)) {
+						unique = false;
+					}
+				}
+			} while (!unique);
+			
+			this.cards.add(drawn);
+			dealt.add(drawn);
+		}
+		
+		public void printHand() {
+			for (Card c : cards) {
+				if (c.value == 11) {
+					System.out.print("Jack of "+ c.suit + ", ");
+				}
+				else if (c.value == 12) {
+					System.out.print("Queen of "+ c.suit + ", ");
+				}
+				else if (c.value == 13) {
+					System.out.print("King of "+ c.suit + ", ");
+				}
+				else if (c.value == 14) {
+					System.out.print("Ace of "+ c.suit + ", ");
+				} else {
+					System.out.print(c.value + " "+ c.suit + ", ");
+				}
+			}
+			System.out.println();
+		}
+
+}
