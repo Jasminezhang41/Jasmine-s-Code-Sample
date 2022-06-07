@@ -1,0 +1,173 @@
+public class SpringChallenge {
+	
+	public static void main (String[] args) {
+		//Q1
+		//PythagoreanT (); 
+		//Q2
+		//int[] operators=new int[9];
+        //getResult(0,operators); 
+		//Q3
+        Pyramid(3);
+	}
+	
+	//Q1
+	public static void PythagoreanT () {
+		for (int a = 1; a < 998; a++) {
+			for (int b = a+1; b < 998; b++) {
+				int c = 1000-a-b;
+				//if it is Pythagorean set
+				if (a*a+b*b==c*c) {
+					//System.out.println(a*b*c);
+					System.out.println(a);
+					System.out.println(b);
+					System.out.println(c);
+				}
+			}
+		}
+	}
+	
+	//Q2
+	public static void getResult(int index,int[] operators){
+		//operators: the different possibilities
+		if (index == 9) {  
+            sum(operators);
+            return;  
+        }  
+		// nothing, +, - represent three possibilities of inserting
+		// represented by 0, 1, 2
+        for (int i=0; i<3; i++) {  
+            operators[index] = i;  	
+            getResult(index+1,operators); 
+        }  
+    }  
+	
+	public static void sum(int[] result) {
+		int [] digits = {1,2,3,4,5,6,7,8,9};
+		int sum = 0;
+		String num = "";	
+		String expression = "";		//the final equation
+		for (int i = 8; i >= 0; i --) {
+			if (result[i] == 0) {	//"0" equals no + or -
+				num =  digits[i] + num;
+			}
+			else if (result[i] == 1) {	//"1" equals "+"
+				num =  digits[i] + num;
+				int n = Integer.parseInt(num);		
+				sum += n;
+				expression =  " + " + n + expression;
+				num = "";
+			}
+			else {		//"2" equals "-"
+				num =  digits[i] + num;
+				int n = Integer.parseInt(num);
+				sum -= n;
+				num = "";
+				expression =  " - " + n + expression ;
+			}
+		}
+		// if 1 has no sign, it still has the same meaning as +
+		if (result[0] == 0) {
+			int n = Integer.parseInt(num);
+			sum += n;
+			expression = " + " + n + expression;
+			num = "";
+		}
+		
+		if (sum == 100) {
+			if ((expression.substring(0,3)).equals(" + ")) {
+				System.out.println(expression.substring(3) + " = 100");
+			}
+			else {
+				System.out.println(expression + " = 100");
+			}
+		}
+		
+	}
+	
+	//Q3
+    public static void Pyramid(int n) {
+    	int[][] Old = new int [1][1];
+    	Old[0][0] = 1;		// n = 0
+    	int[][] New = new int [2][2];
+    	for (int i=1; i<=n; i++) {
+    		//create a squared 2d array with the length longer
+        	New = new int [Old.length+1][Old[0].length+1];
+        	
+        	//define the things in the new array
+        	for (int r = 0; r < New.length; r++) {
+        		for (int c = 0; c < r+1; c++) {
+        			
+        			if (r == 0) {		//the very first one
+        				New[0][0] = 1;
+        			}
+        			
+        			else if (r == New.length-1) {	//the bottom row, no Old[r][c] is considered
+
+        				if (c == 0) {
+        					New[r][c] = Old[r-1][c];
+        				}
+        				else if (c == r) {
+        					New[r][c] = Old[r-1][c-1];
+        				}
+        				else {
+        					New[r][c] = Old[r-1][c-1] + Old[r-1][c];
+        				}
+
+        			}
+        			else if (c == 0) { 	//most left column
+        				New[r][c] = Old[r][c] + Old[r-1][c];
+        			}
+        			
+        			else if (c == r) {		//most right column
+        				New[r][c] = Old[r][c] + Old[r-1][c-1];
+        			}
+        			else {		//most of the cases in the middle:
+            			New[r][c] = Old[r][c] + Old[r-1][c-1] + Old[r-1][c];
+        			}
+        			
+        		}
+        	}
+    		
+    		//change current new to the old
+        	Old = new int [New.length][New[0].length];
+        	for (int r=0; r < New.length; r++) {
+        		for (int c=0; c<New[0].length; c++) {
+        			Old[r][c] = New[r][c];	
+        		}
+        	}	
+    	} 	//loop ends
+    	
+    	int [] coefficients = {0};
+    	boolean isequal = false;	
+    	for (int[] ne : New) {
+    		for (int N: ne) {
+    			
+    			for (int j=0; j<coefficients.length; j++) {		//check if the new num is different	
+    				if (N == coefficients[j]) {
+    					isequal = true;
+    				}
+    			}
+				if (!isequal) {		//add the new different one
+    				int [] arr = new int [coefficients.length+1];
+    				for (int a = 0; a < coefficients.length; a++) {
+    					arr[a] = coefficients[a];
+    				}
+    				arr[arr.length-1] = N;
+    				coefficients = new int [arr.length];
+    				for (int h = 0; h < coefficients.length; h++) {
+    					coefficients[h] = arr[h];
+    				}
+    			}
+				isequal = false;
+    			
+    			//System.out.print(N);
+    		}
+    		//System.out.println();
+    	} 
+    	
+    	for (int u=1; u<coefficients.length; u++) {
+    		System.out.println(coefficients[u]);
+    	}
+    }
+	
+}
